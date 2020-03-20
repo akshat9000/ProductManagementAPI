@@ -1,0 +1,986 @@
+openapi: 3.0.0
+info:
+  version: '1.0.0'
+  title: 'PayPal VAP Final Project'
+  
+  contact:
+    name: Akshat Srivastava
+    email: srivastava.akshat9000@gmail.com
+  
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  
+  description: >
+    # Welcome!
+      
+      This is the documentation for a simple Product Management System API 
+  
+    ___
+    
+    ### **What can you do?**
+    
+    * **Sign up** as a new user.
+    
+    * **Log in** as an existing User.
+    
+    * Get a list of all products available, *you dont need to be signed in to do this*
+    
+    * **Add** a new product, *only server-side admins have the authority*
+    
+    * **Update** details of a specific product, *only server-side admins have the authority*
+    
+    * Get a list of all the products with the specefic product id, *you dont need to be signed in to do this*
+    
+    * **Delete** a specefic product, *only server-side admins have the authority,* incase if the stocks dry up
+    
+    * **Sign Up** as an admin
+    
+    * **Log in** as an admin
+    
+    * Get a list of all the available catagories of products
+    
+    * Get a list of all the products falling under a specific category, *you dont need to be signed in to do this*
+    
+    * **Delete** a specefic catagory from existance, *only server-side admins have the authority*
+    
+    * **Update** the details of a specefic catagory, *only server-side admins have the authority*
+    
+    * Finally, get an **Invoice** of all the purchases made, *you need to be signed in to get a bill*
+    
+
+
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/akshat9000/Product_Management_System/1.0.0
+  - description: Github api endpoint
+    url: http://api.github.com
+
+paths: 
+  /user/signUp:
+    post:
+      tags:
+      - User
+      summary: Add a new user
+      operationId: userSignUp
+      requestBody:
+        description: add a new user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+      responses:
+        '200':
+          description: Account added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signUpResponse'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+                
+  /user/login:
+    post:
+      tags:
+      - User
+      summary: Log in an existing user
+      operationId: userLogin
+      requestBody:
+        description: Login the user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully Logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/loginResponse'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+  
+  /product/listAll:
+    get:
+      tags:
+      - Products
+      summary: list all the available products
+      operationId: listAll
+      parameters:
+          - in: query
+            name: numOfPages
+            description: number of pages of values to be returned
+            schema:
+              type: integer
+              example: 5
+          - in: query
+            name: catagory
+            description: list by catagory
+            schema:
+              type: string
+              example: 'Sanitizers'
+          - in: query
+            name: colour
+            description: include specefic colour
+            schema:
+              type: string
+              example: 'blue/green/black'
+          - in: query
+            name: size
+            description: filter by size
+            schema:   
+              type: string
+              example: 'S/M/L/XL'
+          - in: query
+            name: brand
+            description: filter by brand
+            schema:
+              type: string
+              example: 'Dettol'
+          - in: query
+            name: price
+            description: show results with price less than or equal to
+            schema: 
+              type: integer
+              example: 5000
+      responses:
+        '200':
+          description: Successfully displayed the list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of products
+                items:
+                  $ref: '#/components/schemas/listResponse'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+  
+  /product/addNew:
+    post:
+      security:
+      - bearerAuth: []
+      tags:
+      - Products
+      summary: add a new item
+      operationId: addNewItem
+      requestBody:
+        description: add a new product item
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addNewItem'
+      responses:
+        '200':
+          description: New Product added to inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/addNewResponse'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+    
+  /product/{productId}:
+    put:
+      security:
+      - bearerAuth: []
+      tags:
+      - Products
+      summary: update the details of an existing item
+      operationId: updateItem
+      parameters:
+        - in: path
+          required: true
+          name: productId
+          schema:
+            type: string
+            example: 'lpc11u24'
+        - in: header
+          required: true
+          name: userID
+          schema:
+            type: string
+            example: 'employee userID'
+      requestBody:
+        description: update details of an existing item
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/addNewItem'
+      responses:
+        '200':
+          description: product details updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updateResponse'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+    
+    get:
+      tags:
+      - Products
+      summary: get details of individual items
+      operationId: itemDetails
+      parameters:
+        - in: path
+          required: true
+          name: productId
+          schema:
+            type: string
+            example: 'lpc11u24' 
+      responses:
+        '200':
+          description: Details of specefic product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/itemDeets'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+    
+    delete:
+      tags:
+      - Products
+      summary: delete a specefic product
+      operationId: deleteItem
+      security:
+      - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: productId
+          schema:
+            type: string
+            example: 'lpc1u24'
+        - in: header
+          required: true
+          name: userID
+          schema:
+            type: string
+            example: 'employee userID'
+      responses:
+        '200':
+          description: successfully deleted the item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/itemDeets'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+    
+  /admin/login:
+    post:
+      tags:
+      - Admin
+      summary: Admin login
+      operationId: adminLogin
+      requestBody:
+        description: Login the admin
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully Logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/loginResponse'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+  
+  /admin/signUp:
+    post:
+      tags:
+      - Admin
+      summary: Add a new user
+      operationId: adminSignUp
+      requestBody:
+        description: add a new admin
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+      #parameters:
+      #- in: body
+      #  name: fname
+      #  schema:
+      #    type: string
+      #    example: 'John'
+      #- in: header
+      #  name: lname
+      #  schema:
+      #    type: string
+      #    example: 'Doe'
+      #- in: header
+      #  name: userID
+      #  schema:
+      #    type: string
+      #    example: 'JohnDoe69'
+      #- in: header
+      #  name: password
+      #  schema:
+      #    type: string
+      #    format: password
+      #    example: '****'
+      responses:
+        '200':
+          description: Account added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/signUpResponse'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+  
+  /catagory/listAll:
+    get:
+      tags:
+      - Catagories
+      summary: get all possible catagories
+      operationId: catagoriesListAll
+      responses:
+        '200':
+          description: all the possible catagories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  catagoryName:
+                    type: string
+                    example: 'accessories'
+                  catagoryID:
+                    type: string
+                    example: 'lpc11u24'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+  
+  /catagory/{catagory}:
+    get:
+      tags:
+      - Catagories
+      summary: get items of a specefic catagory-
+      operationId: itemsByCatagory
+      parameters:
+        - in: path
+          name: catagory
+          required: true
+          schema: 
+            type: string
+      responses:
+        '200':
+          description: all the items of the given catagory
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of products
+                items:
+                  $ref: '#/components/schemas/listResponse'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+    
+    delete:
+      tags:
+      - Catagories
+      security:
+      - bearerAuth: []
+      summary: delete new catagory of items
+      operationId: addCatagories
+      parameters:
+        - in: path
+          name: catagory
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: deleted the catagory
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+    
+    put:
+      tags:
+      - Catagories
+      security:
+      - bearerAuth: []
+      summary: update info of a catagory
+      operationId: updateCatagory
+      parameters:
+        - in: path
+          name: catagory
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: update details of an existing item
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/addNewCat'
+      responses:
+        '200':
+          description: updated the catagory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/itemDeets'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+  
+  /bill/boq:
+    get:
+      tags:
+      - Bill
+      operationId: finalInvoice
+      parameters:
+      - in: header
+        name: customerID
+        required: true
+        schema:
+          type: string
+          example: 'JohnDoe69'
+      security: 
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Invoice of Cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bill'
+        '400':
+          description: invalid entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4xxresponse'
+        '500':
+          description: server problem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5xxresponse'
+              
+components:
+  schemas:
+          
+    bill:
+      type: object
+      properties:
+        customerName:
+          type: string
+          example: 'John Doe'
+        totalBill:
+          type: integer
+          example: 4500
+        itemsPurchased:
+          type: array
+          items:
+            type: object
+            properties:
+              itemName:
+                type: string
+                example: 'Sanitizers'
+              individualPrice:
+                type: integer
+                example: 400
+              quantity:
+                type: integer
+                example: 5
+              discountOffered:
+                type: integer
+                example: 5
+              vendorName:
+                type: string
+                example: 'Reliance Trends'
+              brandName:
+                type: string
+                example: 'Levis'
+              additionalInfo:
+                type: object
+                properties:
+                  warranty:
+                    type: string
+                    description: contains description of warranty, if included
+                  colour:
+                    type: array
+                    items:
+                      type: string
+                      example: 'blue/green/black'
+                  size:
+                    type: array
+                    items:
+                      type: string
+                      example: 'S/M/L/XL'
+    
+    itemDeets:
+      type: object
+      properties:
+        responseCode:
+          type: integer
+          example: '200'
+        responseMsg:
+          type: string
+          example: 'New item added'
+        timeStamp:
+          type: string
+          example: '2000-03-09 10:33:45'
+        
+    updateResponse:
+      type: object
+      properties:
+        responseCode:
+          type: integer
+          example: '200'
+        responseMsg:
+          type: string
+          example: 'New item added'
+        timeStamp:
+          type: string
+          example: '2000-03-09 10:30:45'
+  
+    addNewResponse:
+      type: object
+      properties:
+        responseCode:
+          type: integer
+          example: '200'
+        responseMsg:
+          type: string
+          example: 'New item added'
+        timeStamp:
+          type: string
+          example: '2000-03-09 10:30:45'
+    
+    addNewCat:
+      type: object
+      properties:
+        catagoryName:
+          type: string
+          example: 'mobile phones'
+        catagoryId:
+          type: string
+          example: 'lpc11u24'
+  
+    addNewItem:
+      type: object
+      properties:
+        productName:
+          type: string
+          example: 'Sanitizer'
+        productId:
+          type: string
+          example: 'lpc11u24'
+        brand:
+          type: array
+          items:
+            type: string
+            example: 'Dettol'
+        productVendors:
+          description: array of vendors and their details
+          type: array
+          items:
+            type: array
+            description: array of individual vendor details
+            items:
+              type: string
+        additionalInfo:
+          type: object
+          properties:
+            warranty:
+              type: string
+              description: contains description of warranty, if included
+            colour:
+              type: array
+              items:
+                type: string
+                example: 'blue/green/black'
+            size:
+              type: array
+              items:
+                type: string
+                example: 'S/M/L/XL'
+            brands:
+              type: array
+              items:
+                type: string
+                example: 'Levis'
+            attributes:
+              type: array
+              items:
+                type: string
+                example: 'clothing/apparrel/electronics'
+        numOfStock:
+          type: integer
+          example: 60
+        MFDdate:
+          type: string
+          example: '2000-03-09 10:30:45'
+        ExpPeriod:
+          type: string
+          example: 'Best before 6 months of manufacturing'
+        imgURL:
+          type: array
+          items:
+            type: string
+        catagory:
+          type: array
+          items:
+            type: string
+        catagoryId:
+          type: string
+          example: 'abc123'
+    
+    listResponse:
+      type: object
+      properties:
+        responseCode: 
+          type: integer
+          example: '200'
+        relatedItems:
+          type: array
+          items:
+            type: string
+            description: contains all the productID of related or similar items
+        rating:
+          type: object
+          properties:
+            avgRating:
+              type: integer
+              example: 4
+            users:
+              type: object
+              properties:
+                userID: 
+                  type: string
+                  example: 'abc'
+                comments:
+                  type: object
+                  properties: 
+                    comment:
+                      type: string
+                      example: 'amazing product'
+                    commentID:
+                      type: string
+                      example: 'as45fh'
+        responseMsg:
+          type: string
+          example: 'Here are the available products'
+        timeStamp:
+          type: string
+          example: '2000-03-09 10:30:45'
+        productId:
+          type: string
+          example: 'lpc11u24'
+        productName:
+          type: string
+          example: 'xyz'
+        productVendors:
+          description: array of vendors and their details
+          type: array
+          items:
+            type: array
+            description: array of individual vendor details
+            items:
+              type: string
+        catagories:
+          type: array
+          items:
+            type: string
+            example: 'Sanitizers'
+        additionalInfo:
+          type: object
+          properties:
+            warranty:
+              type: string
+              description: contains description of warranty, if included
+            colour:
+              type: array
+              items:
+                type: string
+                example: 'blue/green/black'
+            size:
+              type: array
+              items:
+                type: string
+                example: 'S/M/L/XL'
+            brands:
+              type: array
+              items:
+                type: string
+                example: 'Levis'
+            attributes:
+              type: array
+              items:
+                type: string
+                example: 'clothing/apparrel/electronics'
+        price:
+          type: object
+          properties:
+            basePrice:
+              type: integer
+              example:  5000
+            discount:
+              type: integer
+              example: 15
+        imgURL:
+          type: array
+          items:
+            type: string
+        numOfStock:
+          type: integer
+          example: 60
+        MFDdate:
+          type: string
+          example: '2000-03-09 10:30:45'
+        ExpPeriod:
+          type: string
+          example: 'Best before 6 months of manufacturing'
+        catagoryId:
+          type: string
+          example: 'abc123'
+          
+        
+    loginResponse:
+      type: object
+      properties:
+        responseCode:
+          type: integer
+          example: '200'
+        responseMsg:
+          type: string
+          example: 'Logging In...'
+        timeStamp:
+          type: string
+          example: '2000-03-09 10:30:45'
+    
+    Login:
+      type: object
+      properties:
+        userID:
+          type: string
+          example: 'JohnDoe69'
+        password: 
+          type: string
+          format: password
+          example: '********'
+  
+    SignUp:
+      type: object
+      properties:
+        fname:
+          type: string
+          example: 'John'
+        lname:
+          type: string
+          example: 'Doe'
+        userID:
+          type: string
+          example: 'JohnDoe69'
+        password:
+          type: string
+          format: password
+          example: '********'
+        email:
+          type: string
+          example: 'john.doe@gmail.com'
+          
+    signUpResponse:
+      type: object
+      properties:
+        responseCode:
+          type: integer
+          example: '200'
+        responseMsg:
+          type: string
+          example: 'Account added'
+        timeStamp:
+          type: string
+          example: '2000-03-09 10:30:45'
+        userID:
+          type: string
+          example: 'JohnDoe69'
+    
+    4xxresponse:
+      type: object
+      properties:
+        responseCode:
+          type: integer
+          example: '404'
+        responseMsg:
+          type: string
+          example: 'Client Error, pls recheck'
+        timeStamp:
+          type: string
+          example: '2000-03-09 10:30:45'
+        imgURL:
+          type: string
+          example: 'http://abcxyz.com/404+not+found.png'
+    
+    5xxresponse:
+      type: object
+      properties:
+        responseCode:
+          type: integer
+          example: '500'
+        responseMsg:
+          type: string
+          example: 'Internal server error'
+        timeStamp:
+          type: string
+          example: '2000-03-09 10:30:45'
+        imgURL:
+          type: string
+          example: 'http://abcxyz.com/500+server+down.png'
+    
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
